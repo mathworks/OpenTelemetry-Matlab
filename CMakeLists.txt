@@ -7,6 +7,10 @@ cmake_policy(SET CMP0074 NEW)
 # vcpkg
 # ###########################
 
+if(WIN32)
+  add_compile_definitions(_D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
+endif()
+
 include(FetchContent)
 
 # check if VCPKG_ROOT is defined, which should point to an existing installation
@@ -114,9 +118,6 @@ set(LIBMEXCLASS_FETCH_CONTENT_GIT_TAG "bc2b9f2")
 
 set(LIBMEXCLASS_FETCH_CONTENT_SOURCE_SUBDIR "libmexclass/cpp")
 
-if(WIN32)
-  add_compile_definitions(_D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
-endif()
 
 FetchContent_Declare(
     ${LIBMEXCLASS_FETCH_CONTENT_NAME}
