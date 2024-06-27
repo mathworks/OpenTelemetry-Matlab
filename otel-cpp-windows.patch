@@ -1,0 +1,15 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index cc085b1a..8c03254f 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -296,6 +296,10 @@ if(WITH_EXAMPLES_HTTP AND NOT WITH_EXAMPLES)
+   message(FATAL_ERROR "WITH_EXAMPLES_HTTP=ON requires WITH_EXAMPLES=ON")
+ endif()
+ 
++if(WIN32)
++  add_compile_definitions(_D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
++endif()
++
+ find_package(Threads)
+ 
+ function(install_windows_deps)

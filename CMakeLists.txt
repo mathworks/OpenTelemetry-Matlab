@@ -77,9 +77,7 @@ option(WITH_OTLP_GRPC "Whether to include the OTLP gRPC exporter" OFF)
 if(NOT WITH_OTLP_HTTP AND NOT WITH_OTLP_GRPC)
     message(FATAL_ERROR "At least one of WITH_OTLP_HTTP and WITH_OTLP_GRPC must be ON")
 endif()
-if(APPLE)
-    option(SKIP_OTEL_CPP_PATCH "Whether to skip patching OpenTelemetry-cpp" OFF)
-endif()
+option(SKIP_OTEL_CPP_PATCH "Whether to skip patching OpenTelemetry-cpp" OFF)
 option(WITH_EXAMPLES "Whether to build examples" OFF)
 
 # set vcpkg features depending on specified options
@@ -115,6 +113,10 @@ set(LIBMEXCLASS_FETCH_CONTENT_GIT_REPOSITORY "https://github.com/mathworks/libme
 set(LIBMEXCLASS_FETCH_CONTENT_GIT_TAG "bc2b9f2") 
 
 set(LIBMEXCLASS_FETCH_CONTENT_SOURCE_SUBDIR "libmexclass/cpp")
+
+if(WIN32)
+  add_compile_definitions(_D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
+endif()
 
 FetchContent_Declare(
     ${LIBMEXCLASS_FETCH_CONTENT_NAME}
@@ -184,10 +186,14 @@ if(NOT DEFINED OTEL_CPP_INSTALLED_DIR)
 
    set(OTEL_CPP_CXX_STANDARD 14)
 
-   if(NOT APPLE OR SKIP_OTEL_CPP_PATCH)
-       set(patch_command "")
-   else()
+   if(SKIP_OTEL_CPP_PATCH)
+       set(patch_comand "")
+   elseif(WIN32)
+       set(patch_command git apply ${CMAKE_SOURCE_DIR}/otel-cpp-windows.patch)
+   elseif(APPLE)
        set(patch_command git apply ${CMAKE_SOURCE_DIR}/otel-cpp.patch)
+   else()
+       set(patch_command "")
    endif()
 
    ExternalProject_Add(
