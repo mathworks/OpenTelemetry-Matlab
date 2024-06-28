@@ -54,6 +54,8 @@ jobs:
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
               shell: cmd
+              env: 
+                 VERBOSE: "ON"
               run: |
                   call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
                   cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER="cl.exe" -DCMAKE_C_COMPILER="cl.exe" -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DUSE_BATCH_FOR_MCC=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}

@@ -8,7 +8,7 @@ cmake_policy(SET CMP0074 NEW)
 # ###########################
 
 if(WIN32)
-  add_compile_definitions(_D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
+  add_compile_definitions(_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
 endif()
 
 include(FetchContent)
