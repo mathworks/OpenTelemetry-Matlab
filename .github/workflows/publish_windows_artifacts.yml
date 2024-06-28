@@ -1,0 +1,34 @@
+name: "Publish Windows Artifacts"
+on: 
+    workflow_dispatch:
+jobs:
+    build-windows:
+        runs-on: windows-latest
+        env:
+            OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
+        steps:
+            - name: Download OpenTelemetry-Matlab source
+              uses: actions/checkout@v3
+              with: 
+                path: opentelemetry-matlab
+            - name: Install ninja-build
+              run: choco install ninja
+            - name: Install MATLAB
+              uses: matlab-actions/setup-matlab@v2
+              with:
+                products: MATLAB_Compiler
+            - name: Build OpenTelemetry-Matlab
+              working-directory: opentelemetry-matlab
+              shell: cmd
+              run: |
+                  call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+                  cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER="cl.exe" -DCMAKE_C_COMPILER="cl.exe" -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DUSE_BATCH_FOR_MCC=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake --build build --config Release --target install -- -v
+            - name: Compress into single artifact
+              working-directory: ${{ github.workspace }}
+              run: tar -czf otel-matlab-windows.tar.gz otel_matlab_install
+            - name: Upload artifacts
+              uses: actions/upload-artifact@v2
+              with: 
+                name: otel-matlab-windows.tar.gz
+                path: ${{ github.workspace }}/otel-matlab-windows.tar.gz
