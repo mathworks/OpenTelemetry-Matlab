@@ -54,8 +54,8 @@ jobs:
               shell: cmd
               run: |
                   call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
-                  cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER="cl.exe" -DCMAKE_C_COMPILER="cl.exe" -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
-                  cmake --build build --config Release --target install
+                  cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER="cl.exe" -DCMAKE_C_COMPILER="cl.exe" -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake --build build --config Release --target install -- -v
             - name: Compress into single artifact
               working-directory: ${{ github.workspace }}
               run: tar -czf otel-matlab-windows.tar.gz otel_matlab_install
@@ -85,8 +85,8 @@ jobs:
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
               run: |
-                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_GRPC=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
-                  cmake --build build --config Release --target install
+                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake --build build --config Release --target install 
             - name: Compress into single artifact
               working-directory: ${{ github.workspace }}
               run: tar -czf otel-matlab-${{ matrix.os }}.tar.gz otel_matlab_install
@@ -95,54 +95,54 @@ jobs:
               with: 
                 name: otel-matlab-${{ matrix.os }}.tar.gz
                 path: ${{ github.workspace }}/otel-matlab-${{ matrix.os }}.tar.gz
-    package-mltbx:
-        name: Package MATLAB Toolbox (MLTBX) Files
-        runs-on: ubuntu-20.04
-        permissions:
-          contents: write
-        needs:
-            - build-ubuntu
-            - build-windows
-            - build-macos
-        env:
-            OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
-        steps:
-            - name: Checkout OpenTelemetry-Matlab
-              uses: actions/checkout@v3
-              with:
-                path: OpenTelemetry-Matlab
-            - name: Read version
-              id: getversion
-              working-directory: OpenTelemetry-Matlab
-              run: echo "version=$(cat VERSION.txt)" >> $GITHUB_OUTPUT
-            - name: Download Artifacts
-              uses: actions/download-artifact@v3
-              with:
-                path: artifacts-downloaded
-            - name: Decompress Artifacts
-              run: |
-                  mv artifacts-downloaded/*/*.tar.gz .
-                  tar -xzvf otel-matlab-ubuntu.tar.gz
-                  tar -xzvf otel-matlab-macos-13.tar.gz
-                  tar -xzvf otel-matlab-macos-14.tar.gz
-                  tar -xzvf otel-matlab-windows.tar.gz
-            - name: Install MATLAB
-              uses: matlab-actions/setup-matlab@v1
-            - name: Run commands
-              env:
-                MATLABPATH: OpenTelemetry-Matlab/tools
-                OTEL_MATLAB_TOOLBOX_FOLDER: otel_matlab_install
-                OTEL_MATLAB_TOOLBOX_OUTPUT_FOLDER: 
-                OTEL_MATLAB_TOOLBOX_VERSION: ${{ steps.getversion.outputs.version }}
-              uses: matlab-actions/run-command@v1
-              with:
-                command: packageMatlabInterface
-            - name: Upload Release Asset
-              uses: actions/upload-release-asset@v1
-              env:
-                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              with: 
-                upload_url: ${{ github.event.release.upload_url }}
-                asset_path: ./otel-matlab.mltbx
-                asset_name: otel-matlab.mltbx
-                asset_content_type: application/octet-stream
+                  #package-mltbx:
+                  #name: Package MATLAB Toolbox (MLTBX) Files
+                  #runs-on: ubuntu-20.04
+                  #permissions:
+                  #  contents: write
+                  #needs:
+                  #    - build-ubuntu
+                  #    - build-windows
+                  #    - build-macos
+                  #env:
+                  #    OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
+                  #steps:
+                  #- name: Checkout OpenTelemetry-Matlab
+                  #uses: actions/checkout@v3
+                  #with:
+                  #path: OpenTelemetry-Matlab
+                  #- name: Read version
+                  #id: getversion
+                  #working-directory: OpenTelemetry-Matlab
+                  #run: echo "version=$(cat VERSION.txt)" >> $GITHUB_OUTPUT
+                  #- name: Download Artifacts
+                  #uses: actions/download-artifact@v3
+                  #with:
+                  #path: artifacts-downloaded
+                  #- name: Decompress Artifacts
+                  #run: |
+                  #mv artifacts-downloaded/*/*.tar.gz .
+                  #tar -xzvf otel-matlab-ubuntu.tar.gz
+                  #tar -xzvf otel-matlab-macos-13.tar.gz
+                  #tar -xzvf otel-matlab-macos-14.tar.gz
+                  #tar -xzvf otel-matlab-windows.tar.gz
+                  #- name: Install MATLAB
+                  #uses: matlab-actions/setup-matlab@v1
+                  #- name: Run commands
+                  #env:
+                  #MATLABPATH: OpenTelemetry-Matlab/tools
+                  #OTEL_MATLAB_TOOLBOX_FOLDER: otel_matlab_install
+                  #OTEL_MATLAB_TOOLBOX_OUTPUT_FOLDER: 
+                  #OTEL_MATLAB_TOOLBOX_VERSION: ${{ steps.getversion.outputs.version }}
+                  #uses: matlab-actions/run-command@v1
+                  #with:
+                  #command: packageMatlabInterface
+                  #- name: Upload Release Asset
+                  #uses: actions/upload-release-asset@v1
+                  #env:
+                  #GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  #with: 
+                  #upload_url: ${{ github.event.release.upload_url }}
+                  #asset_path: ./otel-matlab.mltbx
+                  #asset_name: otel-matlab.mltbx
+                  #asset_content_type: application/octet-stream
